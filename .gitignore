@@ -1,4 +1,5 @@
 ### Jetbrain ###
+.dbdata/
 .idea/*
 ### Django ###
 *.log

@@ -6,3 +6,17 @@ services:
     - .:/app
     ports:
     - 8000:8000
+    depends_on:
+      - db
+  db:
+    image: mysql:5.7.22
+    restart: always
+    environment:
+      MYSQL_DATABASE: ambassador
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: kadima97
+    volumes:
+    - .dbdata:/var/lib/mysql
+    ports:
+    - 33066:3306
