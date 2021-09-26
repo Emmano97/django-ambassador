@@ -6,9 +6,12 @@ from app import settings
 from core.models import User
 
 
-class JWTAuthentification(BaseAuthentication):
+class JWTAuthentication(BaseAuthentication):
+
+    API_AMBASSADOR_BASE_URL = "api/ambassador"
 
     def authenticate(self, request):
+
         token = request.COOKIES.get("jwt")
 
         if not token:
@@ -27,9 +30,10 @@ class JWTAuthentification(BaseAuthentication):
         return user, None
 
     @staticmethod
-    def generate_jwt(id):
+    def generate_jwt(id, scope):
         payload = {
             'user_id': id,
+            'scope': scope,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1),
             'iat': datetime.datetime.utcnow()
         }

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import User
+from core.models import Product, Link, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -19,11 +19,17 @@ class UserSerializer(serializers.ModelSerializer):
             'password': {'write_only': True}
         }
 
-    def create(self, validated_data):
-        password = validated_data.pop('password', None)
-        instance = self.Meta.model(**validated_data)
-        if password is not None:
-            instance.set_password(password)
-        instance.save()
 
-        return instance
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+
+class LinkSerializer(serializers.ModelSerializer):
+    products = ProductSerializer(many=True)
+    user = UserSerializer()
+
+    class Meta:
+        model = Link
+        fields = '__all__'

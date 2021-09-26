@@ -2,7 +2,7 @@ from rest_framework import exceptions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from common.authentication import JWTAuthentification
+from common.authentication import JWTAuthentication
 from common.serializers import UserSerializer
 from core.models import User
 
@@ -15,7 +15,7 @@ class RegisterAPIView(APIView):
         if data['password'] != data['password_confirm']:
             raise exceptions.APIException("Password do not match!")
 
-        data['is_ambassador'] = 0
+        data['is_ambassador'] = 'api/ambassador' in request.path
 
         serializer = UserSerializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -38,7 +38,9 @@ class LoginAPIView(APIView):
         if not user.check_password(password):
             raise exceptions.AuthenticationFailed("Incorrect  password")
 
-        token = JWTAuthentification.generate_jwt(user.id)
+        scope = 'ambassador' if 'api/ambassador' in request.path else 'admin'
+        
+        token = JWTAuthentication.generate_jwt(user.id, scope)
 
         response = Response()
 
@@ -52,15 +54,20 @@ class LoginAPIView(APIView):
 
 
 class UserAPIView(APIView):
-    authentication_classes = [JWTAuthentification]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response(UserSerializer(request.user).data)
+        user = request.user
+        data = UserSerializer(user).data
+        if 'api/ambassador' in request.path:
+            data['revenue'] = user.revenue
+
+        return Response(data)
 
 
 class LogoutAPIView(APIView):
-    authentication_classes = [JWTAuthentification]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -77,7 +84,7 @@ class LogoutAPIView(APIView):
 
 
 class ProfileInfoAPIView(APIView):
-    authentication_classes = [JWTAuthentification]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def put(self, request, pk=None):
@@ -90,7 +97,7 @@ class ProfileInfoAPIView(APIView):
 
 
 class ProfilePasswordAPIView(APIView):
-    authentication_classes = [JWTAuthentification]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def put(self, request,  pk=None):
